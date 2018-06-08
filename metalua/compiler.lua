@@ -38,7 +38,7 @@
 --
 --------------------------------------------------------------------------------
 
-require 'checks'
+local checks = require 'checks'
 
 local M  = { }
 
@@ -59,6 +59,24 @@ local arg_types = {
 	proto      = { 'table', '?string' },
 	bytecode   = { 'string', '?string' },
 }
+
+if false then
+    -- if defined, runs on every newly-generated AST
+    function M.check_ast(ast)
+        local function rec(x, n, parent)
+            if not x.lineinfo and parent.lineinfo then
+                local pp = require 'metalua.pprint'
+                pp.printf("WARNING: Missing lineinfo in child #%s `%s{...} of node at %s",
+                          n, x.tag or '', tostring(parent.lineinfo))
+            end
+            for i, child in ipairs(x) do
+                if type(child)=='table' then rec(child, i, x) end
+            end
+        end
+        rec(ast, -1, { })
+    end
+end
+
 
 M.order= { }; for a,b in pairs(M.sequence) do M.order[b]=a end
 
@@ -85,13 +103,14 @@ function CONV :lexstream_to_ast(lx, name)
 	checks('metalua.compiler', 'lexer.stream', '?string')
 	local r = self.parser.chunk(lx)
 	r.source = name
+    if M.check_ast then M.check_ast (r) end
 	return r, name
 end
 
 local bytecode_compiler = nil -- cache to avoid repeated `pcall(require(...))`
 local function get_bytecode_compiler()
     if bytecode_compiler then return bytecode_compiler else
-        local status, result = pcall(require, 'metalua.compiler.bytecode.compile')
+        local status, result = pcall(require, 'metalua.compiler.bytecode')
         if status then
             bytecode_compiler = result
             return result
@@ -146,13 +165,13 @@ end
 function CONV :function_to_bytecode(...) return string.dump(...) end
 
 function CONV :ast_to_src(...)
-	require 'metalua.package' -- ast_to_string isn't written in plain lua
+	require 'metalua.loader' -- ast_to_string isn't written in plain lua
 	return require 'metalua.compiler.ast_to_src' (...)
 end
 
 local MT = { __index=CONV, __type='metalua.compiler' }
 
-function M.new() 
+function M.new()
 	local parser = require 'metalua.compiler.parser' .new()
 	local self = { parser = parser }
 	setmetatable(self, MT)

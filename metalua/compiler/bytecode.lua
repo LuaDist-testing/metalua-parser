@@ -17,11 +17,13 @@
 --
 --------------------------------------------------------------------------------
 
--- Shared common parser table. It will be filled by parser.init(),
--- and every other module will be able to call its elements at runtime.
---
--- If the table was directly created in parser.init, a circular
--- dependency would be created: parser.init depends on other modules to fill the table,
--- so other modules can't simultaneously depend on it.
+local compile = require 'metalua.compiler.bytecode.compile'
+local ldump   = require 'metalua.compiler.bytecode.ldump'
 
-return { }
+local M = { }
+
+M.ast_to_proto      = compile.ast_to_proto
+M.proto_to_bytecode = ldump.dump_string
+M.proto_to_file     = ldump.dump_file
+
+return M
