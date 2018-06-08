@@ -1,10 +1,18 @@
+-- This file was automatically generated for the LuaDist project.
+
 --*-lua-*--
 package = "metalua-parser"
 version = "0.7.2-2"
+-- LuaDist source
 source = {
-   url = "git://git.eclipse.org/gitroot/koneki/org.eclipse.koneki.metalua.git",
-   tag = "v0.7.2",
+  tag = "0.7.2-2",
+  url = "git://github.com/LuaDist-testing/metalua-parser.git"
 }
+-- Original source
+-- source = {
+--    url = "git://git.eclipse.org/gitroot/koneki/org.eclipse.koneki.metalua.git",
+--    tag = "v0.7.2",
+-- }
 description = {
    summary = "Metalua's parser: converting Lua source strings and files into AST",
    detailed = [[
